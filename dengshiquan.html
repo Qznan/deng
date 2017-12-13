@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-CN" >
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>初来驾到</title>
+    <link rel="stylesheet" href="https://cache.amap.com/lbs/static/main1119.css"/>
+    <link rel="stylesheet" href="https://cache.amap.com/lbs/static/jquery.range.css"/>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="css/build.css">
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cache.amap.com/lbs/static/jquery.range.js"></script>
+    <!-- <script src="http://cache.amap.com/lbs/static/es5.min.js"></script> -->
+    <script src="https://webapi.amap.com/maps?v=1.4.0&key=64574c029e1331ce48526aaa7c5885f8"></script>
+    <!-- <script type="text/javascript">var AMapUIProtocol = 'https:';</script> -->
+    <script src="https://webapi.amap.com/ui/1.0/main.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="data/data.js"></script>
+    <style>
+        /*-------------------------------*/
+        /*             地图              */
+        /*-------------------------------*/
+        div#container{
+            width:100%;
+            height: 100%
+        }
+        /*-------------------------------*/
+        /*             滑条              */
+        /*-------------------------------*/
+        div#huatiao {
+            position:absolute;
+            /*left: calc((100% - 525px)/2);*/
+            left:40px;
+            width:525px;
+            height: 75px;
+            bottom: 30px;
+            background-color: rgba(255,255,255,1);
+            padding-left: 10px;
+            padding-right: 10px;
+            font-size: 12px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            line-height: 1
+        }
+        div.slider-container {
+            position:absolute;
+            bottom:24px;
+        }
+        .theme-green .back-bar .pointer {
+            width: 20px;
+            height:20px;
+            top:-7px;
+        }
+        .slider-container .back-bar .pointer-label {
+            top:-19px;
+        }
+        .slider-container .scale {
+            top:7px;
+        }
+        /*
+        .slider-container .back-bar pointer-label {
+            top:-4px;
+            z-index: 1;
+            font-size:5px;
+        }
+        .slider-container .back-bar .pointer {
+            background: rgba(255,255,255,0);
+            width:17px;
+            height:17px;
+        }
+        */
+        /*-------------------------------*/
+        /*            POI搜索            */
+        /*-------------------------------*/
+        div#panel {
+            height: 100%;
+            overflow: auto;
+            width: 200px;
+            /*background-color: rgba(255,255,255,1);*/
+        }
+        #searchBar {
+        height: 30px;
+        background: #ccc;
+        }
+        
+        #searchInput {
+            width: 100%;
+            height: 30px;
+            /*line-height: 30%;*/
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            border: none;
+            border-bottom: 1px solid #ccc;
+            padding: 0 5px;
+        }
+        
+        #searchResults {
+            overflow: auto;
+            height: calc(100% - 30px);
+        }
+        .amap_lib_placeSearch,
+        .amap-ui-poi-picker-sugg-container {
+            border: none!important;
+        }
+        
+        .amap_lib_placeSearch .poibox.highlight {
+            background-color: #CAE1FF;
+        }
+        
+        .poi-more {
+            display: none!important;
+        }
+        /*-------------------------------*/
+        /*           侧边栏sidebar       */
+        /*-------------------------------*/
+        #wrapper {
+            -moz-transition: all 0.5s ease;
+            -o-transition: all 0.5s ease;
+            -webkit-transition: all 0.5s ease;
+            padding-left: 0;
+            transition: all 0.5s ease;
+            position: absolute;
+            z-index: 10000;
+        }
+        #wrapper.toggled {
+          padding-left: 200px;
+        }
+        #wrapper.toggled #sidebar-wrapper {
+          width: 200px;
+        }
+        #sidebar-wrapper {
+          -moz-transition: all 0.5s ease;
+          -o-transition: all 0.5s ease;
+          -webkit-transition: all 0.5s ease;
+          background-color: #FFF;
+          opacity:0.8;
+          /*height: 100%;*/
+          height: calc(100% - 115px);
+          border-bottom-width: 0px;
+          left: 200px;
+          margin-left: -200px;
+          overflow-x: hidden;
+          overflow-y: auto;
+          transition: all 0.5s ease;
+          width: 0;
+          z-index: 1000;
+        }
+        #sidebar-wrapper::-webkit-scrollbar {
+          display: none;
+        }
+
+        /*-------------------------------*/
+        /*          多选框checkbox       */
+        /*-------------------------------*/
+        /*覆盖多选框的样式为bootstrap*/
+        input[type="checkbox"].styled:checked + label:after,
+        input[type="radio"].styled:checked + label:after,
+        .checkbox input[type=checkbox]:checked + label:after {
+            font-family: 'Glyphicons Halflings';
+            content: "\e013";
+        }
+        input[type="checkbox"].styled:checked label:after,
+        input[type="radio"].styled:checked label:after,
+        .checkbox label:after {
+            /*padding-left: 2px;*/
+            /*padding-top: 0px;*/
+            font-size: 9px;
+        }
+        /*同时具有.chenkbox类和.checkbox-inline类（紧挨）的元素*/
+        .checkbox.checkbox-inline { 
+            margin-top: 5px;
+            padding-left:15px;
+        }
+        .checkbox label, .radio label {
+            padding-left: 2px;
+        }
+        /*-------------------------------*/
+        /*       重设起点按钮button      */
+        /*-------------------------------*/
+        #reset_ori, #cancel_reset_ori {
+            margin-left:10px;
+            padding: 1px;
+            font-size: inherit;
+        }
+         #cancel_reset_ori {
+            margin-left:2px;
+         }
+
+         /*-------------------------------*/
+         /*           租房美食景点button  */
+         /*-------------------------------*/
+        button#show_mogu_btn {
+            position: absolute;
+            top: calc((100% - 24px)/2 - 60px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        button#show_dianping_btn {
+            position: absolute;
+            top: calc(((100% - 24px)/2));
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        button#show_jingdian_btn {
+            position: absolute;
+            top: calc(((100% - 24px)/2) + 60px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        button#show_xingcheng_btn {
+            position: absolute;
+            top: calc(((100% - 24px)/2) + 120px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+        button#show_xingcheng_btn1 {
+            position: absolute;
+            top: calc(((100% - 24px)/2) + 120px);
+            right: 2px;
+            font-size: 12px;
+            color: #000000;
+        }
+
+        .glyphicon-home:before, .glyphicon-cutlery:before, .glyphicon-camera:before, .glyphicon-calendar:before {
+            font-size: 20px;
+            margin-left: 2px;
+        }
+        
+
+        .amap-marker-label {
+            background-color: #7CCD7C;
+            border:0px;
+            color:#FFF;
+        }
+
+        #container > div.amap-maps > div > div.amap-layers > div.amap-markers > div:nth-child(1) > div.amap-marker-label {
+            background-color: #EE7600;
+        }
+    </style>
+
+
+</head>
+
+<body>
+<!-- 111111111111111111111111111111111111111111111111111111 -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <label>返回地点</label>
+        <input type="input" style="width:120px"/>
+        <br>
+        <br>
+        <label>返回时间</label>
+        <input type="input" style="width:70px"/>（格式："15:30")
+        <br>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onClick="javascript:show_xingcheng_btn_oc()">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 11111111111111111111111111111111111111111111111111111111 -->
+
+
+
+<div id="container"></div>
+
+<div id="wrapper">
+    <nav class="navbar navbar-inverse navbar-fixed-top" id="sidebar-wrapper" role="navigation">
+        <div id="panel">
+        <div id="searchBar">
+            <input id="searchInput" placeholder="搜地点" />
+        </div>
+        <div id="searchResults"></div>
+        </div>
+    </nav>
+    <button type="button" class="btn btn-default btn-sm" data-toggle="offcanvas">
+        <span class="glyphicon glyphicon-search"></span>
+    </button>
+</div>
+
+
+
+<div id="huatiao">
+    <div class="checkbox checkbox-success checkbox-inline">
+        <input id="ditie_only" class="styled" type="checkbox">
+        <label for="ditie_only">
+            只乘地铁
+        </label>
+    </div> 
+    <div class="checkbox checkbox-success checkbox-inline">
+        <input id="qixing_change" class="styled" type="checkbox">
+        <label for="qixing_change">
+            骑车接驳
+        </label>
+    </div>
+    <div class="checkbox checkbox-success checkbox-inline">
+        <input id="jiache_show" class="styled" type="checkbox">
+        <label for="jiache_show">
+            驾车查询
+        </label>
+    </div>
+    <button id="reset_ori" type="button" class="btn btn-success" onClick="javascript:reset_ori_oc()">重设起点</button>
+    <button id="cancel_reset_ori" type="button" class="btn btn-warning" style="display:none;" onClick="javascript:cancel_reset_ori_oc()">取消</button>
+
+    <input type="hidden" id="timeRange" class="single-slider" value="1" />
+</div>
+
+<button id="show_mogu_btn" type="button" class="btn btn-default btn-xs" style="display:none;" onClick="javascript:show_mogu_btn_oc()">
+    <span class="glyphicon glyphicon-home">
+        <br/>租房子
+    </span>
+</button>
+
+<button id="show_dianping_btn" type="button" class="btn btn-default btn-xs" style="display:none;" onClick="javascript:show_dianping_btn_oc()">
+    <span class="glyphicon glyphicon-cutlery">
+        <br/>找美食
+    </span>
+</button>
+
+<button id="show_jingdian_btn" type="button" class="btn btn-default btn-xs" style="display:none;" onClick="javascript:show_jingdian_btn_oc()">
+    <span class="glyphicon glyphicon-camera">
+        <br/>热门地
+    </span>
+</button>
+<button id="show_xingcheng_btn" type="button" class="btn btn-default btn-xs" style="display:none;" data-toggle="modal" data-target="#myModal">
+    <span class="glyphicon glyphicon-calendar">
+        <br/>排行程
+    </span>
+<button id="show_xingcheng_btn1" type="button" class="btn btn-default btn-xs" style="display:none;" onClick="javascript:show_xingcheng_btn_oc1()">
+    <span class="glyphicon glyphicon-calendar">
+        <br/>排行程
+    </span>
+</button>
+
+
+
+
+<!--     <button id="show_advance_set" type="button" class="btn btn-info" onClick="javascript:show_advance_set_oc()">显示高级设置</button>
+    <button id="cancel_advance_set" type="button" class="btn btn-warning" style="display:none;" onClick="javascript:cancel_advance_set_oc()">取消</button>
+    <div id="advance_set" style="display: none;float: right;">
+        <label>步行速度：</label>
+        <input id="buxing_speed" type="input" style="height: 20px;" />米/秒
+        <br>
+        <label>骑行速度：</label>
+        <input id="qixing_speed" type="input" style="height: 20px;" />米/秒
+        <br>
+        <label>平均等待时间：</label>
+        <input id="wait_time" type="input" style="height: 20px;" />秒
+        <br>
+    </div> -->
+
+
+
+<script src="data/c.js"></script>
+</body>
+</html>
